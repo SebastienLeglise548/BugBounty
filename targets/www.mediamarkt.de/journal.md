@@ -75,3 +75,27 @@ Cible unique testée : www.mediamarkt.de. Les 11 autres hôtes du scope ne serve
 **Prochaine étape**
 - Configurer Burp sur la cible, créer deux comptes de test, relever le checkout connecté et le format
   des identifiants (IDOR), lire une requête GraphQL à 200.
+
+## 2026-11-13 (soir) — Session de test (compte A)
+
+Objectif : relever le tunnel de paiement en session connectée et cartographier les surfaces à enjeu
+(contrôle d'accès, logique métier).
+
+- Checkout connecté relevé : panier → adresse → livraison → paiement → récapitulatif. L'erreur 500
+  observée le 11/11 sur /de/checkout ne se produit qu'en accès direct anonyme ; connecté, la page
+  s'affiche normalement (le 500 n'est donc pas un défaut exploitable).
+- Moyens de paiement : Apple Pay, Klarna, financement (Consors Finanz), Amazon Pay, carte (Click to
+  Pay), Vorkasse, virement, PayPal.
+- Trois leviers de réduction au paiement : carte cadeau, code promo, coupons de fidélité.
+- Contrôle d'accès : plusieurs opérations GraphQL transmettent des identifiants d'objets côté client —
+  `partyId` (solde et historique de points, identifiant séquentiel) et `basketId` (mutations de panier,
+  UUID). Candidats IDOR/BOLA à confirmer avec un second compte.
+- Bonne pratique à l'inverse : `GetPromotionCoupons` dérive l'utilisateur de la session, sans identifiant
+  client.
+- Logique métier : les montants sont calculés côté serveur (aucun prix transmis par le client) ; l'ajout
+  d'une carte cadeau est protégé par un challenge anti-robot, l'ajout d'un code promo ne l'est pas
+  (asymétrie notée, non testée — l'énumération est hors périmètre).
+- Conformité : correction d'un réglage navigateur qui empêchait le suffixe d'identification du User-Agent
+  de s'appliquer à tout le trafic.
+
+Aucune vulnérabilité prouvée à ce stade (Cas B). Surface plutôt durcie.
