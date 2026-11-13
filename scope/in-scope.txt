@@ -1,10 +1,11 @@
 # Périmètre AUTORISÉ — MediaMarktSaturn (YesWeHack, public)   Vérifié : 2026-11-13
+# Source : https://yeswehack.com/programs/mediamarktsaturn-bug-bounty-program
+# Tableau de scope officiel = 11 hôtes web (www.mediamarkt.lu N'Y figure pas : voir out-of-scope.txt)
 www.mediamarkt.de
 www.mediamarkt.at
 www.mediamarkt.es
 www.mediamarkt.nl
 www.mediamarkt.be
-www.mediamarkt.lu
 www.mediamarkt.hu
 www.mediamarkt.pl
 www.mediamarkt.ch

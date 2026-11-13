@@ -1,7 +1,7 @@
 # Fiche cible — www.mediamarkt.de
 
-- **Programme** : MediaMarktSaturn — <coller l'URL exacte de la policy depuis YesWeHack>
-- **Dans le périmètre** : oui (vérifié le 2026-11-13) — 12 hôtes `www.*`, tous les sous-domaines exclus
+- **Programme** : MediaMarktSaturn — https://yeswehack.com/programs/mediamarktsaturn-bug-bounty-program
+- **Dans le périmètre** : oui (vérifié le 2026-11-13) — 11 hôtes `www.*`, tous les sous-domaines exclus
 - **Débit autorisé** : <à confirmer dans la policy YWH> — travail mené à débit bas (5 req/s en recon)
 - **En-tête d'identification** : User-Agent suffixé `-MMS-BugBounty` (règle Burp Match & Replace, vérifiée le 2026-11-10)
 

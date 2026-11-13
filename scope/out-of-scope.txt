@@ -2,5 +2,8 @@
 # Tout ce qui n'est pas dans in-scope.txt est déjà refusé (le doute vaut interdiction).
 *.mediamarkt.pt
 vdp.mediamarktsaturn.com
-# Rappel : TOUS les sous-domaines (auth, app, store, cloud, pickup...) sont HORS SCOPE —
-# repérage passif OK, jamais de test actif.
+# www.mediamarkt.lu : cité dans la DESCRIPTION du programme mais ABSENT du tableau de scope
+#   officiel (11 hôtes). Par prudence (doute = hors scope) → traité HORS PÉRIMÈTRE, non testé.
+#   Observé en recon : CNAME vers mm-lux.myshopify.com (Shopify). À clarifier avec le programme.
+# Infrastructure de l'hébergeur PlusServer GmbH = hors scope (interdiction de scan).
+# Rappel : TOUS les sous-domaines (auth, app, store, cloud, mdc, pickup...) sont HORS SCOPE.
