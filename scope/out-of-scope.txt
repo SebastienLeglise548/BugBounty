@@ -1,7 +1,6 @@
-# Périmètre INTERDIT — l'exclusion l'emporte toujours sur l'inclusion.
-# Source : <url de la policy>   Dernière vérification : AAAA-MM-JJ
-#
-# Exemples (à supprimer) :
-# blog.exemple.com
-# *.corp.exemple.com
-# status.exemple.com
+# HORS PÉRIMÈTRE — MediaMarktSaturn
+# Tout ce qui n'est pas dans in-scope.txt est déjà refusé (le doute vaut interdiction).
+*.mediamarkt.pt
+vdp.mediamarktsaturn.com
+# Rappel : TOUS les sous-domaines (auth, app, store, cloud, pickup...) sont HORS SCOPE —
+# repérage passif OK, jamais de test actif.

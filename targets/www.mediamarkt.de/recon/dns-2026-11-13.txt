@@ -1,0 +1,12 @@
+www.mediamarkt.de            -> www.mediamarkt.de.cdn.cloudflare.net. 172.65.208.234 
+www.mediamarkt.at            -> www.mediamarkt.at.cdn.cloudflare.net. 172.65.233.87 
+www.mediamarkt.es            -> www.mediamarkt.es.cdn.cloudflare.net. 172.65.193.189 
+www.mediamarkt.nl            -> www.mediamarkt.nl.cdn.cloudflare.net. 172.65.203.151 
+www.mediamarkt.be            -> www.mediamarkt.be.cdn.cloudflare.net. 172.65.228.4 
+www.mediamarkt.lu            -> mm-lux.myshopify.com. shops.myshopify.com. 23.227.38.74 
+www.mediamarkt.hu            -> www.mediamarkt.hu.cdn.cloudflare.net. 172.64.147.208 104.18.40.48 
+www.mediamarkt.pl            -> www.mediamarkt.pl.cdn.cloudflare.net. 141.101.90.97 141.101.90.96 141.101.90.99 141.101.90.98 
+www.mediamarkt.ch            -> www.mediamarkt.ch.cdn.cloudflare.net. 141.101.90.96 141.101.90.98 141.101.90.99 141.101.90.97 
+www.mediamarkt.com.tr        -> www.mediamarkt.com.tr.cdn.cloudflare.net. 141.101.90.99 141.101.90.97 141.101.90.96 141.101.90.98 
+www.mediaworld.it            -> www.mediaworld.it.cdn.cloudflare.net. 172.65.227.140 
+www.saturn.de                -> www.saturn.de.cdn.cloudflare.net. 172.65.247.91 

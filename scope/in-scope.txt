@@ -1,7 +1,13 @@
-# Périmètre AUTORISÉ — programme : <nom>
-# Source : <url de la policy>   Dernière vérification : AAAA-MM-JJ
-#
-# Exemples (à supprimer) :
-# *.exemple.com
-# api.exemple.com
-# exemple.fr
+# Périmètre AUTORISÉ — MediaMarktSaturn (YesWeHack, public)   Vérifié : 2026-11-13
+www.mediamarkt.de
+www.mediamarkt.at
+www.mediamarkt.es
+www.mediamarkt.nl
+www.mediamarkt.be
+www.mediamarkt.lu
+www.mediamarkt.hu
+www.mediamarkt.pl
+www.mediamarkt.ch
+www.mediamarkt.com.tr
+www.mediaworld.it
+www.saturn.de
