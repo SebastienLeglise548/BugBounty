@@ -34,9 +34,14 @@
 - [ ] Changement de méthode HTTP — non testé
 - [ ] Contournement de chemin — non testé
 
-## Injections / XSS — non retenu (hors classes sélectionnées)
-- [ ] SQL/NoSQL, OS, SSTI, LDAP/XPath/CRLF, désérialisation — non testés
-- [ ] XSS réfléchie/stockée/DOM, CSP, upload HTML/SVG — non testés
+## Injections — sondées hors sélection (2026-11-15)
+- [x] SQL — négatif : recherche `?query=test'` (4437 résultats) vs `test' AND '1'='1` (454) → entrée traitée en texte littéral (recherche plein-texte paramétrée), aucun signal booléen ni erreur SQL. Non injectable
+- [ ] NoSQL / OS / SSTI / LDAP / XPath / CRLF / désérialisation — non testés
+
+## XSS + Open Redirect — sondés hors sélection (2026-11-15)
+- [~] XSS réfléchie / stockée — recherche `?query=<script>` → 500 (WAF Cloudflare filtre) ; recherche assistée (KI-Suche) → payload échappé (texte). Live chat = système TIERS Oracle RightNow (custhelp.com / rightnowtech.com) → HORS SCOPE, non testé
+- [x] Open Redirect — param `redirectURL=` du login n'accepte pas d'URL externe (`https://example.com`, `//example.com` → redirige vers /myaccount). Protégé
+- [ ] CSP non détaillée ; upload HTML/SVG non testé
 
 ## Logique métier — CLASSE RETENUE
 - [x] Manipulation prix/quantité/devise/remise — montants calculés côté serveur (aucun prix envoyé par le client) → non qualifiante

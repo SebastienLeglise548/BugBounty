@@ -118,3 +118,23 @@ Aucune vulnérabilité prouvée à ce stade (Cas B). Surface plutôt durcie.
   aucun secret dans les bundles JavaScript, aucun champ acceptant une URL (SSRF non applicable).
 - Bilan : tous les angles testables dans le périmètre sont correctement protégés. Le seul levier restant est
   le contrôle d'accès sur les identifiants d'objets (IDOR, partyId/basketId), qui nécessite un second compte.
+
+## 2026-11-15 — Sondage des classes hors sélection (compte A)
+
+Objectif : par acquit de conscience, vérifier rapidement les classes écartées de la sélection (injections,
+XSS, redirection) pour s'assurer qu'aucune piste évidente n'a été manquée. Tout dans le périmètre autorisé,
+à débit bas et en manuel.
+
+- Injection SQL : la recherche produit n'est pas injectable. Comparaison `?query=test'` (4437 résultats) vs
+  `?query=test' AND '1'='1` (454 résultats) : l'entrée est traitée comme texte littéral (recherche plein-texte
+  paramétrée), sans signal booléen ni erreur SQL.
+- XSS : la recherche réfléchie est filtrée — un `<script>` déclenche une erreur 500 (WAF Cloudflare) ; la
+  recherche assistée (KI-Suche) échappe le contenu (rendu en texte). Aucun vecteur réfléchi trouvé.
+- Live chat : externalisé chez un prestataire tiers (Oracle Service Cloud / RightNow, domaines custhelp.com et
+  apparentés). Hors du périmètre du programme, donc non testé.
+- Redirection post-login : le paramètre `redirectURL` n'accepte que des chemins internes ; une URL externe
+  (`https://example.com`, `//example.com`) est ignorée et renvoie vers l'espace compte. Protégé.
+
+Aucune vulnérabilité trouvée (Cas B maintenu). Les classes hors sélection sondées sont elles aussi correctement
+protégées ; le seul levier resté ouvert est le contrôle d'accès sur les identifiants d'objets (IDOR
+partyId/basketId), suspendu à la création d'un second compte de test.
