@@ -5,66 +5,56 @@
 > Cas B (aucune faille prouvée). Classes retenues : contrôle d'accès (IDOR/BOLA), auth (JWT/OAuth), logique métier paiement.
 
 ## Reconnaissance applicative
-- [x] Technologies : Cloudflare (CDN/WAF/Bot Management + Turnstile), Forter (anti-fraude), Sentry, API GraphQL à requêtes persistées, client Apollo (pwa-client-pqm), DNS Akamai, mail Microsoft 365
-- [ ] Fichiers JS téléchargés et lus — à faire (recon active) ; opérations GraphQL partiellement extraites par navigation
-- [x] robots.txt / sitemap / .well-known / graphql — robots.txt lu (endpoints API révélés), sitemaps sous /sitemaps/, /api/v1/graphql confirmé ; swagger/openapi non trouvés
-- [x] Sous-domaines / environnements annexes — ~48 à 164 recensés (CT) ; TOUS hors scope → documentés, non testés
-- [ ] Répertoires exposés (.git/.env/backup/dumps) — non testé
-- [~] Messages d'erreur verbeux — Sentry actif ; erreurs GraphQL structurées (error_code) ; pas de stack trace exposée observée
+- [x] Technologies : Cloudflare (CDN/WAF/Bot Management + Turnstile), Forter, Sentry, API GraphQL à requêtes persistées, client Apollo (pwa-client-pqm), DNS Akamai, mail Microsoft 365
+- [x] Fichiers JS lus : main.js + persisted-query-lists.js (sur www.mediamarkt.de) → AUCUN secret/clé/token en dur. Manifeste des opérations GraphQL chargé dynamiquement (loadManifest), non embarqué
+- [x] robots.txt / sitemap / .well-known / graphql — robots.txt lu, sitemaps sous /sitemaps/, /api/v1/graphql confirmé ; swagger/openapi non trouvés
+- [x] Sous-domaines / environnements annexes — ~48 à 164 recensés (CT) ; TOUS hors scope, documentés, non testés
+- [x] Répertoires exposés — négatif : /.git/HEAD, /.env, /.DS_Store, /server-status, /backup → tous 404/erreur, rien d'exposé
+- [~] Messages d'erreur verbeux — Sentry actif ; erreurs GraphQL structurées ; pas de stack trace exposée
 
 ## Authentification
-- [ ] Énumération d'utilisateurs — non testé (login email-first repéré ; énumération = non qualifiante)
+- [ ] Énumération d'utilisateurs — non testé (non qualifiante)
 - [ ] Politique MDP / verrouillage / rate limit login — non testé
 - [ ] Reset de mot de passe — non testé
 - [ ] MFA — non testé
-- [~] OAuth / SSO — options repérées (Google, Apple, MediaMarkt-ID) ; observation du flux authorize = à faire (T3)
-- [~] JWT — structure analysée (RS256, kid o2sign, iss mmse, claims sub/user_id/r=partyId, exp 15 min) ; alg:none / confusion HS-RS = à faire (T1)
+- [x] OAuth / SSO — observé : flux Google = response_type=code, state + nonce présents, scope minimal, PKCE absent (client confidentiel). redirect_uri = auth.mediamarkt.de (SOUS-DOMAINE HORS SCOPE) → manip redirect_uri non testable. Posture correcte
+- [x] JWT — 3 attaques négatives : (1) signature vérifiée (payload trafiqué → Unauthorized) ; (2) alg:none rejeté ; (3) confusion RS256→HS256 rejetée (clé reconstruite, token HS256 forgé → Unauthorized + redirection login). Validé de bout en bout
 
 ## Session
-- [x] Attributs cookies — cookie session `a` : HttpOnly + Secure + SameSite=Strict
-- [ ] Session non invalidée à la déconnexion / au changement de MDP — non testé
+- [x] Attributs cookies — cookie session : HttpOnly + Secure + SameSite=Strict
+- [ ] Session non invalidée à la déconnexion / changement MDP — non testé
 - [ ] Session fixation — non testé
 - [ ] Sessions concurrentes non révoquées — non testé
 
 ## Contrôle d'accès — CLASSE RETENUE
-- [~] IDOR — 2 candidats : partyId (GetPointsBalance/Transactions, séquentiel, présent dans le JWT) et basketId (AddGiftcard + mutation coupon, UUID). NON confirmés → besoin du compte B
-- [ ] Élévation verticale (endpoint admin avec compte user) — non testé
-- [ ] Élévation horizontale entre tenants / pays — non testé
-- [ ] Contrôle uniquement côté client — non testé
-- [ ] Changement de méthode HTTP (GET vers POST/PUT/PATCH/DELETE) — non testé
+- [~] IDOR — 2 candidats : partyId (séquentiel, dans le JWT) et basketId (UUID). NON confirmés → besoin du compte B
+- [ ] Élévation verticale — non testé
+- [ ] Élévation horizontale entre pays — non testé
+- [x] Contrôle uniquement côté client — le backend applique l'autorisation (Unauthorized sans session). Pas de contrôle client-only
+- [ ] Changement de méthode HTTP — non testé
 - [ ] Contournement de chemin — non testé
 
-## Injections — non retenu (hors classes sélectionnées)
-- [ ] SQL / NoSQL — non testé
-- [ ] Commandes OS — non testé
-- [ ] SSTI — non testé
-- [ ] LDAP / XPath / CRLF — non testé
-- [ ] Désérialisation — non testé
-
-## XSS — non retenu
-- [ ] Réfléchie / stockée / DOM — non testé
-- [ ] CSP — non analysée en détail
-- [ ] Upload rendu HTML/SVG — non testé
+## Injections / XSS — non retenu (hors classes sélectionnées)
+- [ ] SQL/NoSQL, OS, SSTI, LDAP/XPath/CRLF, désérialisation — non testés
+- [ ] XSS réfléchie/stockée/DOM, CSP, upload HTML/SVG — non testés
 
 ## Logique métier — CLASSE RETENUE
-- [x] Manipulation prix/quantité/devise/remise — testé (cartographie) : montants calculés cote serveur (GetBasket, AddGiftcard, coupon n'envoient aucun prix) ; manip de prix sans objet, non qualifiante
-- [ ] Étapes du tunnel sautées / rejouées — non testé
-- [ ] Valeurs négatives / grandes / décimales / unicode — non testé (pas de champ montant côté client)
-- [ ] Race conditions (double usage coupon / carte cadeau) — non testé
-- [~] Absence de rate limit sur action coûteuse — ajout carte cadeau protégé par Turnstile, ajout code promo sans Turnstile (asymétrie) ; non testé (énumération interdite), noté
+- [x] Manipulation prix/quantité/devise/remise — montants calculés côté serveur (aucun prix envoyé par le client) → non qualifiante
+- [~] Étapes du tunnel sautées — accès direct au paiement charge l'étape mais adresse+livraison déjà complétées (suivi serveur) → pas un saut
+- [ ] Valeurs négatives/grandes/décimales — non testé (pas de champ montant client)
+- [ ] Race conditions (double usage coupon) — non testé
+- [~] Absence de rate limit — carte cadeau protégée par Turnstile, code promo sans Turnstile (asymétrie notée) ; énumération interdite
 
 ## Côté serveur — non retenu
-- [ ] SSRF / LFI / XXE / upload / request smuggling — non testés
+- [ ] SSRF / LFI / XXE / upload / smuggling — non testés
 
 ## Configuration
-- [~] CORS permissif — GetBasket renvoie access-control-allow-origin: * sur endpoint authentifié ; wildcard + cookies bloqué en cross-origin crédentialé, a priori non exploitable (à confirmer)
-- [x] En-têtes de sécurité — HSTS (max-age 31536000), x-frame-options: deny ; CSP non détaillée
+- [x] CORS — non exploitable : ACAO:* (wildcard sans credentials) + cookie SameSite=Strict → lecture cross-origin authentifiée impossible
+- [x] En-têtes de sécurité — HSTS (max-age 31536000), x-frame-options: deny
 - [ ] Subdomain takeover — non testé (sous-domaines hors scope)
-- [ ] Identifiants par défaut — N/A
-- [ ] CVE confirmées manuellement — non testé
+- [ ] CVE manuelles — non testé
 
 ## Avant de rapporter
-- [ ] Reproduit 2x depuis une session propre — N/A (aucun finding confirmé)
-- [~] Impact métier en une phrase — rédigé pour les candidats dans le rapport projet
-- [x] Preuves caviardées + horodatées — captures internes ; tokens/PII jamais recopiés
+- [ ] Reproduit 2× — N/A (aucun finding confirmé)
+- [x] Preuves caviardées + horodatées — tokens/PII jamais recopiés
 - [x] Vérifié hors liste exclue — manip de prix, énumération, rate-limiting, open redirect simple = écartés

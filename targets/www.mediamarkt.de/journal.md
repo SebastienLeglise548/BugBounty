@@ -99,3 +99,22 @@ Objectif : relever le tunnel de paiement en session connectée et cartographier 
   de s'appliquer à tout le trafic.
 
 Aucune vulnérabilité prouvée à ce stade (Cas B). Surface plutôt durcie.
+
+## 2026-11-14 — Tests d'authentification et d'API (compte A)
+
+- Checklists de couverture par cible créées (web + API), cochées au fil des tests.
+- Authentification (JWT) : trois attaques classiques testées, toutes sans effet. (1) Un jeton au contenu
+  modifié mais à la signature d'origine est rejeté (signature bien vérifiée). (2) Un jeton forgé en « alg:none »
+  est rejeté. (3) Confusion d'algorithme RS256→HS256 : la clé publique a été reconstruite à partir de deux de
+  nos jetons, un jeton HS256 forgé avec cette clé comme secret, et il est rejeté (déconnexion, redirection vers
+  la page de connexion). Le JWT est correctement validé.
+- OAuth : flux à code observé (state, nonce, périmètre minimal). Le callback pointe vers auth.mediamarkt.de,
+  un sous-domaine hors périmètre — la manipulation du redirect_uri n'est donc pas testable.
+- API GraphQL : surface très réduite. Seuls les GET à requêtes persistées passent ; POST arbitraires, méthodes
+  PUT/DELETE/PATCH/OPTIONS, introspection et versions parallèles sont rejetés (403/404). Pas de documentation
+  exposée, pas d'erreurs verbeuses.
+- Autres tests, tous négatifs : sur-exposition de données, mass assignment (champs privilégiés injectés ignorés,
+  type de compte reste B2C), CORS non exploitable (cookie SameSite=Strict), aucun fichier sensible exposé,
+  aucun secret dans les bundles JavaScript, aucun champ acceptant une URL (SSRF non applicable).
+- Bilan : tous les angles testables dans le périmètre sont correctement protégés. Le seul levier restant est
+  le contrôle d'accès sur les identifiants d'objets (IDOR, partyId/basketId), qui nécessite un second compte.

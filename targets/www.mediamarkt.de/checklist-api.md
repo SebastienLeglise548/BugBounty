@@ -1,48 +1,48 @@
 # Checklist API — www.mediamarkt.de (/api/v1/graphql)
 
-> Dupliquée de docs/03-checklist-api.md. OWASP API Security Top 10.
-> Légende : [x] testé · [~] partiel / candidat non confirmé · [ ] non testé.
+> OWASP API Security Top 10. [x] testé · [~] partiel · [ ] non testé.
+> API GraphQL à requêtes persistées (hash par opération), client Apollo pwa-client-pqm.
 
 ## Découverte
-- [~] Doc exposée (swagger/openapi/api-docs) — cherchés, non trouvés
-- [~] GraphQL + introspection — endpoint /api/v1/graphql confirmé (persisted queries) ; introspection non testée (constat à faire, non qualifiante seule)
-- [ ] Versions parallèles (/v1, /v2, /internal, /beta) — /v1 confirmé ; autres non testées
-- [~] Endpoints extraits du JS / du trafic — GetUser, GetBasket, GetPointsBalance, GetPointsTransactions, GetPromotionCoupons, AddGiftcard, mutation code promo, GetConsentCategories, GetCheckoutConfig… ; lecture complète des bundles JS = à faire
+- [x] Doc exposée — négatif : /swagger.json, /openapi.json, /api/v1/swagger.json, /api-docs → 404/Not Found
+- [x] GraphQL + introspection — GET brut rejeté, POST bloqué au edge (403). GET persistés uniquement → introspection NON accessible
+- [x] Versions parallèles — /api/v2, /api/internal, /api/beta, /graphql → tous 404. API cloisonnée sur /api/v1
+- [x] Endpoints extraits du JS / trafic — opérations relevées par navigation ; bundles JS lus (manifeste chargé dynamiquement, non énumérable statiquement)
 - [ ] Différences API web vs mobile — non testé (apps mobiles in scope, non étudiées)
 
 ## API1 — BOLA / IDOR — RETENU
 - [~] Remplacer un ID par celui d'un autre compte — 2 candidats (partyId, basketId) ; besoin du compte B
 - [x] IDs devinables — partyId séquentiel (énumérable) ; basketId UUID (non devinable)
-- [ ] Objets imbriqués (deux niveaux vérifiés ?) — non testé
-- [x] Prouver l'accès, ne pas exfiltrer de données clients — respecté (lecture seule, PII non collectées)
+- [ ] Objets imbriqués — non testé
+- [x] Prouver l'accès, ne pas exfiltrer de données — respecté (lecture seule, PII non collectées)
 
-## API2 — Authentification — RETENU (partiel)
-- [ ] Endpoints accessibles sans token — non testé
-- [ ] Token expiré / révoqué accepté — non testé (exp 15 min observé)
+## API2 — Authentification — RETENU
+- [x] Endpoints sans token — Unauthorized sans session valide (auth serveur-side)
+- [x] Token expiré / révoqué — validation JWT complète prouvée ; exp présent + refresh → expiration appliquée
 - [ ] Clé API dans l'URL — N/A (partyId = paramètre, pas secret)
-- [~] JWT alg:none / confusion HS-RS / signature non vérifiée — à faire (T1)
+- [x] JWT signature + alg:none + confusion RS256→HS256 — tous rejetés. JWT validé de bout en bout
 
-## API3 — Autorisation au niveau propriété
-- [ ] Mass assignment (role:admin, isVerified:true, balance:9999) — non testé (candidat : mutation update profil/adresse)
-- [ ] Sur-exposition (réponse > UI : PII, hash, tokens) — non testé (candidat : réponse GetUser vs UI)
+## API3 — Autorisation niveau propriété
+- [x] Mass assignment — non vulnérable : rejeu d'UpdatePersonalAccountProfile avec champs injectés (type:B2B, role:admin, isVerified) → 200 mais champs ignorés (type reste B2C). Non qualifiant
+- [x] Sur-exposition — négatif : getProfile renvoie la fiche de l'utilisateur lui-même, pas de données tierces/hash/token
 
 ## API4 — Consommation de ressources
-- [~] Pagination sans limite — GetPromotionCoupons accepte limit:1000 (client) ; non abusé (pas de DoS)
-- [ ] GraphQL profond / aliasing / batching — non testé
+- [~] Pagination sans limite — GetPromotionCoupons accepte limit:1000 ; non abusé (pas de DoS)
+- [x] GraphQL profond / aliasing / batching — non faisable : POST arbitraire bloqué 403
 
 ## API5 — BFLA
-- [ ] Fonctions admin avec token user — non testé
-- [ ] Méthodes non documentées (PUT/DELETE/PATCH) — non testé
+- [~] Fonctions admin avec token user — non testable (hashes des opérations admin inconnus, manifeste dynamique ; POST bloqué)
+- [x] Méthodes non documentées — PUT/DELETE/PATCH/OPTIONS → tous 403
 
 ## API6 — Flux métier sensibles
-- [~] Automatiser un flux manuel — checkout cartographié ; ajout code promo sans captcha (noté) ; non automatisé (interdit)
+- [~] Automatiser un flux manuel — checkout cartographié ; non automatisé (interdit)
 
 ## API7 — SSRF
-- [ ] Champs acceptant une URL — non repéré / non testé
+- [x] Champs acceptant une URL — aucun champ URL dans l'espace compte (tout structuré) → SSRF non applicable
 
 ## API8 — Mauvaise configuration
-- [~] CORS / verbes / en-têtes de debug — access-control-allow-origin: * sur GetBasket noté
-- [ ] Erreurs exposant stack / SQL — non observé
+- [x] CORS / verbes / debug headers — ACAO:* non exploitable ; PUT/DELETE/PATCH/OPTIONS → 403
+- [x] Erreurs exposant stack / SQL — requête invalide → 403 HTML générique, aucune fuite
 
 ## API9 — Inventaire
 - [x] Hôtes d'API en sous-domaine = HORS SCOPE — repérés, non testés
@@ -51,10 +51,9 @@
 - [ ] Données d'un service tiers reprises sans validation — non testé
 
 ## GraphQL spécifique
-- [~] Introspection en prod — à tester (constat)
-- [~] Mutations sensibles sans contrôle d'accès — AddGiftcard + coupon prennent basketId côté client (candidat BOLA) ; GetPromotionCoupons dérive l'utilisateur de la session (bonne pratique)
-- [ ] Contournement de rate limit par batching — non testé
-- [ ] Suggestions de champs (fuite de schéma) — non testé
+- [x] Introspection en prod — NON accessible (GET brut rejeté + POST 403)
+- [~] Mutations sensibles sans contrôle d'accès — AddGiftcard + coupon prennent basketId côté client (candidat BOLA) ; GetPromotionCoupons = identité par session
+- [x] Batching rate-limit bypass / suggestions de champs — non faisables (POST arbitraire bloqué 403)
 
 ## Avant de rapporter
 - [ ] Faille qualifiante, impact démontré, PoC minimal — N/A (candidats en attente du compte B)
